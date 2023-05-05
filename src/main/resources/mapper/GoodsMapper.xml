@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.atguigu.jxc.dao.GoodsDao">
+    <resultMap id="goodsResultMap" type="com.atguigu.jxc.entity.Goods" autoMapping="true">
+<!--        <id column="goods_id" property="goodsId"/>-->
+<!--        <result column="goods_coed" property="goodsCode"/>-->
+<!--        <result column="goods_name" property="goodsName"/>-->
+<!--        <result column="inventory_quantity" property="inventoryQuantity"/>-->
+<!--        <result column="min_num" property="minNum"/>-->
+<!--        <result column="goods_model" property="goodsModel"/>-->
+<!--        <result column="goods_producer" property="goodsProducer"/>-->
+<!--        <result column="purchasing_price" property="purchasingPrice"/>-->
+<!--        <result column="last_purchasing_price" property="lastPurchasingPrice"/>-->
+<!--        <result column="remarks" property="remarks"/>-->
+<!--        <result column="selling_price" property="sellingPrice"/>-->
+<!--        <result column="sate" property="state"/>-->
+<!--        <result column="goods_unit" property="goodsUnit"/>-->
+<!--        <result column="goods_type_id" property="goodsTypeId"/>-->
+    </resultMap>
+
+    <insert id="saveGoods">
+        insert into t_goods(goods_code,goods_name,inventory_quantity,min_num,goods_model,
+                            goods_producer,purchasing_price,last_purchasing_price,remarks
+                            ,selling_price,state,goods_unit,goods_type_id)
+        values(#{goodsCode},#{goodsName},IF(#{inventoryQuantity} is null,0,#{inventoryQuantity}),#{minNum},#{goodsModel},#{goodsProducer},#{purchasingPrice},
+               #{lastPurchasingPrice},#{remarks},#{sellingPrice},IF(#{state} is null,0,#{state}),#{goodsUnit},#{goodsTypeId})
+    </insert>
+
+
+
+
+    <update id="upDateGoods">
+        update
+            t_goods
+        <set>
+            <if test="goodsCode != null and goodsCode != ''">
+                goods_code = #{goodsCode},
+            </if>
+            <if test="goodsName != null and goodsName != ''">
+                goods_name = #{goodsName},
+            </if>
+            <if test="inventoryQuantity != null and inventoryQuantity != ''">
+                inventory_quantity = #{inventoryQuantity},
+            </if>
+            <if test="lastPurchasingPrice != null and lastPurchasingPrice != ''">
+                last_purchasing_price = #{lastPurchasingPrice},
+            </if>
+            <if test="minNum != null and minNum != ''">
+                min_num = #{minNum},
+            </if>
+            <if test="goodsModel != null and goodsModel != ''">
+                goods_model = #{goodsModel},
+            </if>
+            <if test="goodsProducer != null and goodsProducer != ''">
+                goods_producer = #{goodsProducer},
+            </if>
+            <if test="purchasingPrice != null and purchasingPrice != ''">
+                purchasing_price = #{purchasingPrice},
+            </if>
+            <if test="remarks != null and remarks != ''">
+                remarks = #{remarks},
+            </if>
+            <if test="sellingPrice != null and sellingPrice != ''">
+                selling_price = #{sellingPrice},
+            </if>
+            <if test="state != null and state != ''">
+                state = #{state},
+            </if>
+            <if test="goodsUnit != null and goodsUnit != ''">
+                goods_unit = #{goodsUnit},
+            </if>
+            <if test="goodsTypeId != null and goodsTypeId != ''">
+                goods_type_id = #{goodsTypeId}
+            </if>
+        </set>
+        where goods_id = #{goodsId}
+    </update>
+
+    <update id="saveStock">
+        UPDATE
+            t_goods
+        <set>
+            <if test="inventoryQuantity != null and inventoryQuantity != ''">
+                inventory_quantity = #{inventoryQuantity},
+            </if>
+            <if test="purchasingPrice != null and purchasingPrice != ''">
+                purchasing_price = #{purchasingPrice}
+            </if>
+        </set>
+        where goods_id = #{goodsId}
+    </update>
+
+    <update id="upDateGoodsStock">
+        UPDATE t_goods SET inventory_quantity = 0 WHERE goods_id = #{goodsId};
+    </update>
+
+    <delete id="delGoods">
+        delete from t_goods where goods_id = #{goodsId}
+    </delete>
+
+    <delete id="deleteStock">
+
+
+    </delete>
+
+
+    <select id="getMaxCode" resultType="java.lang.String">
+        SELECT
+            MAX( goods_code )
+        FROM
+            t_goods
+    </select>
+
+    <sql id="goodsMap">
+        tg.`goods_id`,
+            tg.`goods_code`,
+            tg.`goods_name`,
+            tg.`inventory_quantity`,
+            tg.`last_purchasing_price`,
+            tg.`min_num`,
+            tg.`goods_model`,
+            tg.`goods_producer`,
+            tg.`purchasing_price`,
+            tg.`remarks`,
+            tg.`selling_price`,
+            tg.`state`,
+            tg.`goods_unit`
+    </sql>
+
+    <select id="listInventory" resultMap="goodsResultMap">
+        SELECT
+        tg.`goods_id`,
+        tg.`goods_code`,
+        tg.`goods_name`,
+        tg.`inventory_quantity`,
+        tg.`last_purchasing_price`,
+        tg.`min_num`,
+        tg.`goods_model`,
+        tg.`goods_producer`,
+        tg.`purchasing_price`,
+        tg.`remarks`,
+        tg.`selling_price`,
+        tg.`state`,
+        tg.`goods_unit`,
+        tgt.`goods_type_id`,
+        tgt.`goods_type_name`
+        FROM
+            t_goods_type tgt inner JOIN
+            t_goods tg
+            ON tg.`goods_type_id` = tgt.`goods_type_id`
+        <where>
+            <if test="goodsTypeId!= null and goodsTypeId != ''">
+                tgt.`goods_type_id` = #{goodsTypeId}
+            </if>
+            <if test="codeOrName != null and codeOrName != ''">
+                or tg.`goods_code`= #{codeOrName}
+            </if>
+            <if test="codeOrName != null and codeOrName != ''">
+                or tg.`goods_name` LIKE CONCAT('%',#{codeOrName},'%')
+            </if>
+
+        </where>
+        LIMIT #{offSet}, #{pageRow};
+    </select>
+
+    <select id="gettotal" resultType="java.lang.Integer">
+        SELECT
+            COUNT(*)
+        FROM
+            t_goods_type tgt INNER JOIN
+            t_goods tg
+            ON tg.`goods_type_id` = tgt.`goods_type_id`
+        <where>
+            <if test="goodsTypeId!= null and goodsTypeId != ''">
+                tgt.`goods_type_id` = #{goodsTypeId}
+            </if>
+            <if test="codeOrName != null and codeOrName != ''">
+                or tg.`goods_code`= #{codeOrName}
+            </if>
+            <if test="codeOrName != null and codeOrName != ''">
+                or tg.`goods_name` = #{codeOrName}
+            </if>
+        </where>
+    </select>
+
+    <select id="getGoodsUnits" resultType="com.atguigu.jxc.entity.Unit">
+        SELECT
+            unit_id,
+            unit_name
+        FROM
+            t_unit;
+    </select>
+
+    <select id="getGoods" resultType="com.atguigu.jxc.entity.Goods">
+        select
+            tg.`goods_id`,
+            tg.`goods_code`,
+            tg.`goods_name`,
+            tg.`inventory_quantity`,
+            tg.`last_purchasing_price`,
+            tg.`min_num`,
+            tg.`goods_model`,
+            tg.`goods_producer`,
+            tg.`purchasing_price`,
+            tg.`remarks`,
+            tg.`selling_price`,
+            tg.`state`,
+            tg.`goods_unit`
+            from
+        t_goods tg
+        where tg.`goods_id` =#{goodsId}
+    </select>
+
+    <select id="getNoInventoryQuantity" resultType="com.atguigu.jxc.entity.Goods">
+        SELECT
+        tgt.`goods_type_id`,
+        tgt.`goods_type_name`,
+        tg.`goods_id`,
+        tg.`goods_code`,
+        tg.`goods_name`,
+        tg.`inventory_quantity`,
+        tg.`last_purchasing_price`,
+        tg.`min_num`,
+        tg.`goods_model`,
+        tg.`goods_producer`,
+        tg.`purchasing_price`,
+        tg.`remarks`,
+        tg.`selling_price`,
+        tg.`state`,
+        tg.`goods_unit`
+        FROM
+            t_goods tg
+                INNER JOIN
+            t_goods_type tgt
+            ON
+                tg.goods_type_id = tgt.goods_type_id
+            and
+                tg.`inventory_quantity` = 0
+        <where>
+            <if test="nameOrCode != null and nameOrCode != ''">
+                tg.goods_code = #{nameOrCode}
+            </if>
+            <if test="nameOrCode != null and nameOrCode != ''">
+                or tg.goods_name like CONCAT('%',#{nameOrCode},'%')
+            </if>
+        </where>
+        LIMIT #{pageSet}, #{rows}
+    </select>
+
+    <select id="getNOInventoryTotal" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM
+        t_goods tg
+        INNER JOIN
+        t_goods_type tgt
+        ON
+        tg.goods_type_id = tgt.goods_type_id
+        and
+        tg.`inventory_quantity` = 0
+        <where>
+            <if test="nameOrCode != null and nameOrCode != ''">
+                tg.goods_code = #{nameOrCode}
+            </if>
+            <if test="nameOrCode != null and nameOrCode != ''">
+                or tg.goods_name like CONCAT('%',#{nameOrCode},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="getHasInventoryQuantity" resultType="com.atguigu.jxc.entity.Goods">
+        SELECT
+        tgt.`goods_type_id`,
+        tgt.`goods_type_name`,
+        tg.`goods_id`,
+        tg.`goods_code`,
+        tg.`goods_name`,
+        tg.`inventory_quantity`,
+        tg.`last_purchasing_price`,
+        tg.`min_num`,
+        tg.`goods_model`,
+        tg.`goods_producer`,
+        tg.`purchasing_price`,
+        tg.`remarks`,
+        tg.`selling_price`,
+        tg.`state`,
+        tg.`goods_unit`
+        FROM
+        t_goods tg
+        INNER JOIN
+        t_goods_type tgt
+        ON
+        tg.goods_type_id = tgt.goods_type_id
+        and
+        tg.`inventory_quantity` > 0
+        <where>
+            <if test="nameOrCode != null and nameOrCode != ''">
+                tg.goods_code = #{nameOrCode}
+            </if>
+            <if test="nameOrCode != null and nameOrCode != ''">
+                or tg.goods_name like CONCAT('%',#{nameOrCode},'%')
+            </if>
+        </where>
+        LIMIT #{pageSet}, #{rows}
+    </select>
+
+    <select id="getasInventoryTotal" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM
+        t_goods tg
+        INNER JOIN
+        t_goods_type tgt
+        ON
+        tg.goods_type_id = tgt.goods_type_id
+        and
+        tg.`inventory_quantity` > 0
+        <where>
+            <if test="nameOrCode != null and nameOrCode != ''">
+                tg.goods_code = #{nameOrCode}
+            </if>
+            <if test="nameOrCode != null and nameOrCode != ''">
+                or tg.goods_name like CONCAT('%',#{nameOrCode},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="getListAlarm" resultType="com.atguigu.jxc.entity.Goods">
+        SELECT
+        tg.`goods_id`,
+        tg.`goods_code`,
+        tg.`goods_name`,
+        tg.`inventory_quantity`,
+        tg.`last_purchasing_price`,
+        tg.`min_num`,
+        tg.`goods_model`,
+        tg.`goods_producer`,
+        tg.`purchasing_price`,
+        tg.`remarks`,
+        tg.`selling_price`,
+        tg.`state`,
+        tg.`goods_unit`
+        FROM
+        `t_goods` tg
+        WHERE
+        tg.inventory_quantity &lt; tg.min_num
+    </select>
+
+    <select id="getNumber" resultType="java.lang.Integer">
+        SELECT
+            SUM(goods_num) sumSaleGoods
+        FROM
+            t_sale_list_goods tsl
+        WHERE
+            tsl.`goods_id` = #{goodsId}
+    </select>
+
+    <select id="getCustomer" resultType="java.lang.Integer">
+        SELECT
+            SUM(goods_num) sumCustomerGoods
+        FROM
+            `t_customer_return_list_goods` tcr
+        WHERE
+            tcr.`goods_id` = #{goodsId}
+    </select>
+
+
+</mapper>

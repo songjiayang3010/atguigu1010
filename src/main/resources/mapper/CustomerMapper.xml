@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.jxc.dao.CustomerMapper">
+
+    <sql id="CustomerMapper">
+        tc.customer_id,
+            tc.customer_name,
+            tc.contacts,
+            tc.phone_number,
+            tc.address,
+            tc.remarks
+    </sql>
+
+    <select id="CustomerList" resultType="com.atguigu.jxc.entity.Customer">
+        SELECT
+        <include refid="CustomerMapper"></include>
+        FROM
+            t_customer tc
+        <where>
+            <if test="customerName != null and customerName != ''">
+                tc.customer_name LIKE CONCAT('%',#{customerName},'%')
+            </if>
+        </where>
+            LIMIT #{page},#{rows};
+    </select>
+
+    <select id="getToTal" resultType="java.lang.Integer">
+        select
+            COUNT(*)
+        from
+            t_customer tc
+        <where>
+            <if test="customerName != null and customerName != ''">
+                tc.customer_name like CONCAT('%',#{customerName},'%')
+            </if>
+        </where>
+    </select>
+
+
+    <insert id="saveCustomer">
+        insert into t_customer(customer_name,contacts,phone_number,address,remarks)
+        values(#{customerName},#{contacts},#{phoneNumber},#{address},#{remarks});
+    </insert>
+
+    <update id="upDateCustomer">
+        UPDATE
+            t_customer tc
+        <set>
+            <if test="customerName != null and customerName != ''">
+                tc.customer_name = #{customerName},
+            </if>
+            <if test="contacts != null and contacts != ''">
+                tc.contacts = #{contacts},
+            </if>
+            <if test="phoneNumber != null and phoneNumber != ''">
+                tc.phone_number = #{phoneNumber},
+            </if>
+            <if test="address != null and address != ''">
+                tc.address = #{address},
+            </if>
+            <if test="remarks != null and remarks != ''">
+                tc.remarks = #{remarks}
+            </if>
+        </set>
+        where tc.customer_id = #{customerId};
+    </update>
+
+    <delete id="DelCustomer">
+        delete from t_customer tc where tc.customer_id = #{ids};
+    </delete>
+
+</mapper>
